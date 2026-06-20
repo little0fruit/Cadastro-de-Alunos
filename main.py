@@ -28,7 +28,7 @@ def Cadastros():
             [sg.Button(button_text='Professor', key='-ProfessorCad-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Matricula', key='-MatriculaCad-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Turmas', key='-TurmasCad-', font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
-            [sg.Button(button_text='Voltar', key='-Voltar-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]
+            [sg.Button(button_text='Voltar', key='-Voltar_Cadastros-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]
             ]
 
 
@@ -39,7 +39,7 @@ def Alteracoes():
             [sg.Button(button_text='Professor', key='-ProfessorAlt-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Matricula', key='-MatriculaAlt-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Turmas', key='-TurmasAlt-', font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
-            [sg.Button(button_text='Voltar', key='-Voltar-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]
+            [sg.Button(button_text='Voltar', key='-Voltar_Alteracoes-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]
             ]
 
 
@@ -50,14 +50,14 @@ def Consultas():
             [sg.Button(button_text='Professor', key='-ProfessorCon-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Matricula', key='-MatriculaCon-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Turmas', key='-TurmasCon-', font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
-            [sg.Button(button_text='Voltar', key='-Voltar-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]]
+            [sg.Button(button_text='Voltar', key='-Voltar_Consultas-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,10))]]
 
 def Notas():
     return [[sg.Text('Gerenciamento Escolar',background_color='#4B5694', justification='center', expand_x=True, font=('Arial', 32))],
             [sg.Button(button_text='Lançar Nota', key='-Cadastros-', font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Consultar Notts', key='-Consultas-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
             [sg.Button(button_text='Alterar Notas', key='-Alteraçes-',font=('Arial', 20), button_color= '#7288AE', size=(30,1))],
-            [sg.Button(button_text='Voltar', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,90))],
+            [sg.Button(button_text='Voltar', key='-Voltar_Notas-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,90))],
             ]
 
     
@@ -82,6 +82,8 @@ while True:
         MostrarTela('-Tela_Consultas-')
     elif event == '-Notas-':
         MostrarTela('-Tela_Notas-')
+    elif event in ('-Voltar_Cadastros-', '-Voltar_Alteracoes-', '-Voltar_Consultas-', '-Voltar_Notas-'):
+        MostrarTela('-Tela_Menu-')
 
 
 window.close()             
