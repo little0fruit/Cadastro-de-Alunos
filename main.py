@@ -22,6 +22,7 @@ def MostrarTela(nome_tela):
     window['-Tela_Consultas-'].update(visible=False)
     window['-Tela_Notas-'].update(visible=False)
     window['-Tela_CadastroAluno-'].update(visible=False)
+    window['-Tela_CadastroDisciplina-'].update(visible=False)
 
     window[nome_tela].update(visible=True)
 
@@ -98,6 +99,14 @@ def Cadastro_Alunos():
             ]
 
 
+def Cadastro_Disciplina():
+    return [[sg.Text('Cadastrar Disciplina',background_color='#4B5694', justification='center', expand_x=True, font=('Arial', 32))],
+            [sg.Text('Nome:', font=('Arial',20), size=(8,1)), sg.Input('Digite o nome da discplina' , key='-Nome_Disciplina-',do_not_clear=True,font=('Arial',20), size=(40,1), text_color='gray')],
+            [sg.Text('Carga Horaria:', font=('Arial',20), size=(14,1)), sg.Input('HH:MM:SS', key='-Carga_Disciplina-',do_not_clear=True,font=('Arial',20), size=(34,1), text_color='gray')],
+            [sg.Button(button_text='Voltar', key='-Voltar_CadastroDisciplina-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(0,30)),
+             sg.Button(button_text='Salvar', key='-Salvar_CadastroDisciplina-', font=('Arial', 20), button_color= '#7288AE', size=(20,1), pad=(10,30))]
+            ]
+
 def Limpar_Cadastro(window, placeholders, key):
     '''Limpa os inputs podendo ser especificado ou ser todos'''
     if key in placeholders:
@@ -119,11 +128,12 @@ def Salvar_Cadastro_Alunos(values):
     telefoneAluno = telefoneAluno.replace('(','').replace(')','').replace('-','').strip()
     enderecoAluno = values['-Endereco_Aluno-']
     enderecoAluno = enderecoAluno.upper()
-    nomeinvalido = 0
+    nomeinvalido = 0 
     cpfinvalido = 0
     nascimentoinvalido = 0
     telefoneinvalido = 0
     enderecoinvalido = 0
+
 
     #verificação de entradas
     if len(nomeAluno) <4:
@@ -173,6 +183,52 @@ def Salvar_Cadastro_Alunos(values):
             sg.popup('Operação cancelada.')
         
 
+def Salvar_Cadastro_Disciplina(values):
+    nomeDisciplina = values['-Nome_Disciplina-']
+    nomeDisciplina = nomeDisciplina.upper()
+    cargaDisciplina = values ['-Carga_Disciplina-']
+    cargaDisciplina = cargaDisciplina.strip()
+    
+    nomeinvalido= 0
+    cargainvalida = 0
+
+    if len(nomeDisciplina) <4:
+        nomeinvalido = 1
+    elif not cargaDisciplina.isdigit():
+        cargainvalida = 1
+    else:
+        cargaDisciplina = int(cargaDisciplina)
+        if cargaDisciplina <= 0:
+            cargainvalida = 1
+        #Tempo maximo de horas de carga horaria
+        elif cargaDisciplina > 500:
+            cargainvalida = 1
+    
+    #popups de erro
+    if nomeinvalido == 1:
+        sg.popup_error('Nome invalido!',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders, '-Nome_Disciplina-')
+    elif cargainvalida == 1:
+        sg.popup_error('Carga Horaria invalida',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders,'-Carga_Disciplina-')
+    else:
+        cadastrar = popup_sim_nao('Deseja salvar o cadastro?')
+        if cadastrar == 'Sim':
+            cursor.execute('INSERT INTO Disciplina (Nome_disciplina, Carga_horaria) VALUES (?, ?)', (nomeDisciplina, cargaDisciplina))
+            conn.commit()
+            sg.popup('Aluno cadastrado com sucesso!',no_titlebar=True)
+            continuar = popup_sim_nao('Deseja continuar cadastrando?')
+            if continuar == 'Sim':
+                Limpar_Cadastro()
+            elif continuar == 'Não':
+                MostrarTela('-Tela_Menu-')
+        elif cadastrar == 'Não':
+            sg.popup('Operação cancelada.')
+    
+    
+
+
+
 #Conexão banco de dados
 database = 'escola.db'
 conn = sqlite3.connect(database)
@@ -185,7 +241,9 @@ layout = [
         sg.Column(Alteracoes(), key='-Tela_Alteracoes-', visible=False),
         sg.Column(Consultas(), key='-Tela_Consultas-', visible=False),
         sg.Column(Notas(), key='-Tela_Notas-', visible=False),
-        sg.Column(Cadastro_Alunos(), key='-Tela_CadastroAluno-', visible=False)]
+        sg.Column(Cadastro_Alunos(), key='-Tela_CadastroAluno-', visible=False),
+        sg.Column(Cadastro_Disciplina(), key='-Tela_CadastroDisciplina-', visible=False)
+        ]
         ]
 #Para aparecer as instruçoes nos inputs
 placeholders = {
@@ -193,7 +251,9 @@ placeholders = {
     '-CPF_Aluno-': 'Apenas numeros',
     '-Nascimento_Aluno-': 'dd/mm/aaaa',
     '-Telefone_Aluno-': '(00) 00000-0000',
-    '-Endereco_Aluno-': 'Digite o endereço'
+    '-Endereco_Aluno-': 'Digite o endereço',
+    '-Nome_Disciplina-': 'Digite o nome da discplina',
+    '-Carga_Disciplina-': 'HH:MM:SS'
 }
 
 window = sg.Window('Teste', layout, finalize=True,size=(900,500))
@@ -232,13 +292,20 @@ while True:
             window[key].update(placeholders[key], text_color='gray')
     
     #Cadastros            
-    elif event in ('-Voltar_CadastroAluno-'):
+    elif event in ('-Voltar_CadastroAluno-', '-Voltar_CadastroDisciplina-'):
         MostrarTela('-Tela_Cadastros-')
         Limpar_Cadastro(window, placeholders, key)
+    
     elif event == '-AlunosCad-':
         MostrarTela('-Tela_CadastroAluno-')
     elif event == '-Salvar_CadastroAluno-':
         Salvar_Cadastro_Alunos(values)
+    
+    elif event == '-DisciplinaCad-':
+        MostrarTela('-Tela_CadastroDisciplina-')
+    elif event == '-Salvar_CadastroDisciplina-':
+        Salvar_Cadastro_Disciplina(values)
+    
 
 window.close()             
 
