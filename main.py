@@ -98,12 +98,17 @@ def Cadastro_Alunos():
             ]
 
 
-def Limpar_Cadastro():
-    for key, texto in placeholders.items():
-        window[key].update(texto, text_color='gray')
+def Limpar_Cadastro(window, placeholders, key):
+    '''Limpa os inputs podendo ser especificado ou ser todos'''
+    if key in placeholders:
+        window[key].update(placeholders[key], text_color='gray')
 
 
 def Salvar_Cadastro_Alunos(values):
+    '''
+    Testa se os valores são validos para entar no banco de dados e posteriormente salva os mesmos
+    '''
+    #entrada de valores
     nomeAluno = values['-Nome_Aluno-']
     nomeAluno = nomeAluno.upper()
     cpfAluno = values['-CPF_Aluno-']
@@ -114,29 +119,45 @@ def Salvar_Cadastro_Alunos(values):
     telefoneAluno = telefoneAluno.replace('(','').replace(')','').replace('-','').strip()
     enderecoAluno = values['-Endereco_Aluno-']
     enderecoAluno = enderecoAluno.upper()
+    nomeinvalido = 0
     cpfinvalido = 0
     nascimentoinvalido = 0
     telefoneinvalido = 0
+    enderecoinvalido = 0
 
-
-    if len(cpfAluno) != 11 or not cpfAluno.isdigit():# Verificando se o CPF tem 11 dígitos e se é composto apenas por números
+    #verificação de entradas
+    if len(nomeAluno) <4:
+        nomeinvalido = 1
+    elif len(cpfAluno) != 11 or not cpfAluno.isdigit():# Verificando se o CPF tem 11 dígitos e se é composto apenas por números
         cpfinvalido = 1
     elif len(nascimentoAluno) != 8 or not nascimentoAluno.isdigit() or nascimentoAluno[0:2] > '31' or nascimentoAluno[2:4] > '12' or nascimentoAluno[4:8] > str(datetime.datetime.now().year):# Verificando se a data de nascimento tem o formato correto e se os valores são válidos
         nascimentoinvalido = 1
     elif len(telefoneAluno) != 11 or not telefoneAluno.isdigit():
         telefoneinvalido = 1
+    elif len(enderecoAluno) <10:
+        enderecoinvalido = 1
     else:
         dia = int(nascimentoAluno[0:2])
         mes = int(nascimentoAluno[2:4])
         ano = int(nascimentoAluno[4:8])
         nascimentoAluno = str(ano) + '-' + str(mes) + '-' + str(dia)
 
-    if cpfinvalido == 1:
+    #popups de erro
+    if nomeinvalido == 1:
+        sg.popup_error('Nome invalido!',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders, '-Nome_Aluno-')
+    elif cpfinvalido == 1:
         sg.popup_error('CPF invalido!',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders,'-CPF_Aluno-')
     elif nascimentoinvalido == 1:
         sg.popup_error('Data de Nascimento invalida!',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders,'-Nascimento_Aluno-')
     elif telefoneinvalido == 1:
         sg.popup_error('Telefone invalido',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders,'Telefone_Aluno-')
+    elif enderecoinvalido == 1:
+        sg.popup_error('Endereço invalido',no_titlebar=True)
+        Limpar_Cadastro(window, placeholders,'-Endereco_Aluno-')
     else:
         cadastrar = popup_sim_nao('Deseja salvar o cadastro?')
         if cadastrar == 'Sim':
@@ -152,11 +173,12 @@ def Salvar_Cadastro_Alunos(values):
             sg.popup('Operação cancelada.')
         
 
-
+#Conexão banco de dados
 database = 'escola.db'
 conn = sqlite3.connect(database)
 cursor = conn.cursor()
 
+#Definir layout so o menu visivel e ir alterando posterior com a função MostrarTela()
 layout = [
         [sg.Column(Menu(), key='-Tela_Menu-', visible=True),
         sg.Column(Cadastros(), key='-Tela_Cadastros-', visible=False),
@@ -165,6 +187,7 @@ layout = [
         sg.Column(Notas(), key='-Tela_Notas-', visible=False),
         sg.Column(Cadastro_Alunos(), key='-Tela_CadastroAluno-', visible=False)]
         ]
+#Para aparecer as instruçoes nos inputs
 placeholders = {
     '-Nome_Aluno-': 'Digite o nome',
     '-CPF_Aluno-': 'Apenas numeros',
@@ -174,6 +197,7 @@ placeholders = {
 }
 
 window = sg.Window('Teste', layout, finalize=True,size=(900,500))
+
 for key in placeholders:
     window[key].bind('<FocusIn>', '+FOCUS_IN')
     window[key].bind('<FocusOut>', '+FOCUS_OUT')
@@ -182,6 +206,7 @@ while True:
     event, values = window.read()
     if event == sg.WINDOW_CLOSED:
         break
+
     #Menu Principal
     elif event == '-Cadastros-':
         MostrarTela('-Tela_Cadastros-')
@@ -195,6 +220,7 @@ while True:
         break
     elif event in ('-Voltar_Cadastros-', '-Voltar_Alteracoes-', '-Voltar_Consultas-', '-Voltar_Notas-'):
         MostrarTela('-Tela_Menu-')
+    
     #Configurações placeholders
     elif event.endswith('+FOCUS_IN'):
         key = event.replace('+FOCUS_IN', '')
@@ -204,10 +230,11 @@ while True:
         key = event.replace('+FOCUS_OUT', '')
         if values[key] == '':
             window[key].update(placeholders[key], text_color='gray')
+    
     #Cadastros            
     elif event in ('-Voltar_CadastroAluno-'):
         MostrarTela('-Tela_Cadastros-')
-        Limpar_Cadastro()
+        Limpar_Cadastro(window, placeholders, key)
     elif event == '-AlunosCad-':
         MostrarTela('-Tela_CadastroAluno-')
     elif event == '-Salvar_CadastroAluno-':
